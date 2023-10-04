@@ -148,6 +148,9 @@ class BartAttention(nn.Module):
         self.num_heads = num_heads
         self.dropout = dropout
         self.head_dim = embed_dim // num_heads
+        # Re-attention
+        self.reatten_matrix = nn.Conv2d(self.num_heads,self.num_heads, 1, 1)
+        self.var_norm = nn.BatchNorm2d(self.num_heads)
 
         if (self.head_dim * num_heads) != self.embed_dim:
             raise ValueError(
@@ -247,6 +250,8 @@ class BartAttention(nn.Module):
             attn_weights = attn_weights.view(bsz * self.num_heads, tgt_len, src_len)
 
         attn_weights = nn.functional.softmax(attn_weights, dim=-1)
+        # Re-attention
+        attnattn_weights = self.var_norm(self.reatten_matrix(attn))
 
         if layer_head_mask is not None:
             if layer_head_mask.size() != (self.num_heads,):
