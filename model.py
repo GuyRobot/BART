@@ -251,7 +251,9 @@ class BartAttention(nn.Module):
 
         attn_weights = nn.functional.softmax(attn_weights, dim=-1)
         # Re-attention
+        attn_weights = attn_weights.view(bsz, self.num_heads, tgt_len, src_len)
         attn_weights = self.var_norm(self.reatten_matrix(attn_weights))
+        attn_weights = attn_weights.view(bsz * self.num_heads, tgt_len, src_len)
 
         if layer_head_mask is not None:
             if layer_head_mask.size() != (self.num_heads,):
